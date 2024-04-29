@@ -1,14 +1,14 @@
-package api
+package main
 
 import (
 	"encoding/json"
 	"net/http"
 )
 
-func RespondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
+func respondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 	response, err := json.Marshal(payload)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -20,7 +20,7 @@ func RespondWithJSON(w http.ResponseWriter, status int, payload interface{}) {
 // 	respondWithJSON(w, code, map[string]string{"error": msg})
 // }
 
-func RespondWithError(w http.ResponseWriter, code int, message string) {
+func respondWithError(w http.ResponseWriter, code int, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(map[string]string{"error": message})

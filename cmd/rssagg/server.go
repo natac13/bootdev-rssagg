@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/natac13/bootdev-rssagg/internal/api"
 	"github.com/natac13/bootdev-rssagg/internal/database"
 )
 
@@ -53,21 +52,18 @@ func (s *Server) setupRoutes(dbUrl string) {
 	}
 
 	dbQueries := database.New(db)
-	apiConfig := api.NewAPI(dbQueries)
+	apiConfig := NewAPI(dbQueries)
 
 	s.router.HandleFunc("GET /readiness", handlerReadiness)
-	s.router.HandleFunc("GET /error", func(w http.ResponseWriter, r *http.Request) {
-		api.RespondWithError(w, http.StatusInternalServerError, "error")
-	})
+	s.router.HandleFunc("GET /error", handlerError)
 
-	s.router.HandleFunc("POST /users", apiConfig.HandleCreateUser)
-	s.router.HandleFunc("GET /users", apiConfig.AuthMiddleware(apiConfig.HandleGetUser))
+	s.router.HandleFunc("POST /users", apiConfig.handleCreateUser)
+	s.router.HandleFunc("GET /users", apiConfig.authMiddleware(apiConfig.handleGetUser))
 
-	s.router.HandleFunc("POST /feeds", apiConfig.AuthMiddleware(apiConfig.HandleCreateFeed))
+	s.router.HandleFunc("POST /feeds", apiConfig.authMiddleware(apiConfig.handleCreateFeed))
+	s.router.HandleFunc("GET /feeds", apiConfig.handleGetFeeds)
 
-	s.router.HandleFunc("GET /feeds", apiConfig.HandleGetFeeds)
-}
-
-func handlerReadiness(w http.ResponseWriter, r *http.Request) {
-	api.RespondWithJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	s.router.HandleFunc("POST /feeds/follow", apiConfig.authMiddleware(apiConfig.handleCreateFeedFollow))
+	s.router.HandleFunc("GET /feeds/follow", apiConfig.authMiddleware(apiConfig.handleGetFeedFollows))
+	s.router.HandleFunc("DELETE /feeds/follow", apiConfig.authMiddleware(apiConfig.handleDeleteFeedFollow))
 }
