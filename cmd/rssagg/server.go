@@ -61,7 +61,11 @@ func (s *Server) setupRoutes(dbUrl string) {
 	})
 
 	s.router.HandleFunc("POST /users", apiConfig.HandleCreateUser)
-	s.router.HandleFunc("GET /users", apiConfig.HandleGetUser)
+	s.router.HandleFunc("GET /users", apiConfig.AuthMiddleware(apiConfig.HandleGetUser))
+
+	s.router.HandleFunc("POST /feeds", apiConfig.AuthMiddleware(apiConfig.HandleCreateFeed))
+
+	s.router.HandleFunc("GET /feeds", apiConfig.HandleGetFeeds)
 }
 
 func handlerReadiness(w http.ResponseWriter, r *http.Request) {
