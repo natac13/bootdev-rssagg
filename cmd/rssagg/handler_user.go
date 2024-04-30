@@ -31,3 +31,15 @@ func (a *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 func (a *apiConfig) handleGetUser(w http.ResponseWriter, r *http.Request, user database.User) {
 	respondWithJSON(w, http.StatusOK, databaseUserToAPIUser(user))
 }
+
+func (a *apiConfig) handleGetPostForUser(w http.ResponseWriter, r *http.Request, user database.User) {
+	posts, err := a.DB.GetPostForUser(r.Context(), database.GetPostForUserParams{
+		UserID: user.ID,
+		Limit:  10,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, databasePostsToAPIPosts(posts))
+}

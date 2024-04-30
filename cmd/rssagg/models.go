@@ -1,6 +1,11 @@
 package main
 
-import "github.com/natac13/bootdev-rssagg/internal/database"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/natac13/bootdev-rssagg/internal/database"
+)
 
 type User struct {
 	ID        string `json:"id"`
@@ -72,4 +77,40 @@ func databaseFeedFollowsToAPIFeedFollows(dbFeedFollows []database.FeedFollow) []
 		apiFeedFollows[i] = databaseFeedFollowToAPIFeedFollow(dbFeedFollow)
 	}
 	return apiFeedFollows
+}
+
+type Post struct {
+	ID          string    `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	FeedID      uuid.UUID `json:"feed_id"`
+	Title       string    `json:"title"`
+	Url         string    `json:"url"`
+	Description *string   `json:"description"`
+	PublishedAt time.Time `json:"published_at"`
+}
+
+func databasePostToAPIPost(dbPost database.Post) Post {
+	var description *string
+	if dbPost.Description.Valid {
+		description = &dbPost.Description.String
+	}
+	return Post{
+		ID:          dbPost.ID.String(),
+		CreatedAt:   dbPost.CreatedAt,
+		UpdatedAt:   dbPost.UpdatedAt,
+		FeedID:      dbPost.FeedID,
+		Title:       dbPost.Title,
+		Url:         dbPost.Url,
+		Description: description,
+		PublishedAt: dbPost.PublishedAt,
+	}
+}
+
+func databasePostsToAPIPosts(dbPosts []database.Post) []Post {
+	apiPosts := make([]Post, len(dbPosts))
+	for i, dbPost := range dbPosts {
+		apiPosts[i] = databasePostToAPIPost(dbPost)
+	}
+	return apiPosts
 }

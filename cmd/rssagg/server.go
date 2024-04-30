@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/natac13/bootdev-rssagg/internal/database"
 )
@@ -54,6 +55,12 @@ func (s *Server) setupRoutes(dbUrl string) {
 	dbQueries := database.New(db)
 	apiConfig := NewAPI(dbQueries)
 
+	go startScraping(
+		dbQueries,
+		10,
+		time.Minute*1,
+	)
+
 	s.router.HandleFunc("GET /readiness", handlerReadiness)
 	s.router.HandleFunc("GET /error", handlerError)
 
@@ -66,4 +73,6 @@ func (s *Server) setupRoutes(dbUrl string) {
 	s.router.HandleFunc("POST /feeds/follow", apiConfig.authMiddleware(apiConfig.handleCreateFeedFollow))
 	s.router.HandleFunc("GET /feeds/follow", apiConfig.authMiddleware(apiConfig.handleGetFeedFollows))
 	s.router.HandleFunc("DELETE /feeds/follow", apiConfig.authMiddleware(apiConfig.handleDeleteFeedFollow))
+
+	s.router.HandleFunc("GET /posts", apiConfig.authMiddleware(apiConfig.handleGetPostForUser))
 }
